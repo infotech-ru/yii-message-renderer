@@ -10,10 +10,6 @@
 
 namespace Infotech\MessageRenderer;
 
-use Symfony\Component\PropertyAccess\Exception\NoSuchPropertyException;
-use Symfony\Component\PropertyAccess\PropertyAccess;
-use Symfony\Component\PropertyAccess\Exception\UnexpectedTypeException;
-
 /**
  * Abstract Message Render Context class
  */
@@ -63,7 +59,7 @@ abstract class MessageContext
     {
         return array_map(
             function ($config) use ($data) {
-                return trim(self::fetchData($config['fetcher'], $data))
+                return trim(DataFetcher::fetchData($config['fetcher'], $data))
                     ?: (isset($config['empty']) ? (string)$config['empty'] : '');
             },
             $this->placeholdersConfig
@@ -82,40 +78,6 @@ abstract class MessageContext
             },
             $this->placeholdersConfig
         );
-    }
-
-    /**
-     * Fetch a data element from an object or an array
-     *
-     * @param callable|string $fetcher property path or callback
-     * @param object|array $data
-     *
-     * @return mixed
-     */
-    public static function fetchData($fetcher, $data)
-    {
-        return is_callable($fetcher)
-            ? call_user_func($fetcher, $data)
-            : self::fetchDataByPropertyPath((string)$fetcher, $data);
-    }
-
-    /**
-     * Fetch a data element from an object or an array by property path
-     *
-     * @param string $path property path or callback
-     * @param object|array $data
-     *
-     * @return mixed
-     */
-    private static function fetchDataByPropertyPath($path, $data)
-    {
-        try {
-            return PropertyAccess::createPropertyAccessor()->getValue($data, $path);
-        } catch (UnexpectedTypeException $e) {
-             return null;
-        } catch (NoSuchPropertyException $e) {
-             return null;
-        }
     }
 
     /**

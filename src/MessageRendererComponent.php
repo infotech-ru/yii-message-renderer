@@ -33,6 +33,8 @@ class MessageRendererComponent extends CApplicationComponent
      *
      * @return string|mixed Default {@see MessageContext::renderTemplate()} implementation returns string, but
      *                      custom implementation may returns structure with additional data
+     *
+     * @throws CException if context with $contextType does not registered in the component
      */
     public function render($contextType, $textTemplate, $data)
     {
@@ -42,15 +44,22 @@ class MessageRendererComponent extends CApplicationComponent
     /**
      * Iterating over data set and rendering messages
      *
-     * @param string        $contextType  Type of previously registered context
-     * @param string        $textTemplate Template text
-     * @param CDataProvider $dataProvider Provides data of type conformed with $contextType
+     * @param string          $contextType  Type of previously registered context
+     * @param string          $textTemplate Template text
+     * @param CDataProvider   $dataProvider Provides data of type conformed with $contextType
+     * @param string|callable $addressFetcher property path or callback function($data) : string
      *
      * @return MessageRenderingIterator
+     * @throws CException if context with $contextType does not registered in the component
      */
-    public function renderBatch($contextType, $textTemplate, CDataProvider $dataProvider)
+    public function renderBatch($contextType, $textTemplate, CDataProvider $dataProvider, $addressFetcher = null)
     {
-        return new MessageRenderingIterator($dataProvider, $this->getContext($contextType), $textTemplate);
+        return new MessageRenderingIterator(
+            $dataProvider,
+            $this->getContext($contextType),
+            $textTemplate,
+            $addressFetcher
+        );
     }
 
     /**
@@ -139,7 +148,7 @@ class MessageRendererComponent extends CApplicationComponent
      * @param string $type
      *
      * @return MessageContext
-     * @throws Exception
+     * @throws Exception if context does not registered in the component
      */
     public function getContext($type)
     {
