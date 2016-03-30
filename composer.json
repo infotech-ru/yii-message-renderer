@@ -1,0 +1,27 @@
+{
+  "name": "infotech/yii-message-renderer",
+  "description": "Message rendering component for Yii 1.1",
+  "minimum-stability": "stable",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Anton Tyutin",
+      "email": "tyutin@mail.ru"
+    }
+  ],
+  "require": {
+    "symfony/property-access": "^2.8"
+  },
+  "require-dev": {
+    "yiisoft/yii": "^1.1",
+    "phpunit/phpunit": "^4.8",
+    "mockery/mockery": "^0.9.4"
+  },
+  "autoload": {
+    "psr-4": {"Infotech\\MessageRenderer\\": "src/"}
+  },
+  "config": {
+    "bin-dir": "bin",
+    "vendor-dir": "vendor"
+  }
+}
