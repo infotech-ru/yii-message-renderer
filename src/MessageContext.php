@@ -29,11 +29,12 @@ abstract class MessageContext
      * @param string $template
      * @param object|array $data
      *
-     * @return string
+     * @return string|mixed Default implementation returns string, but custom implementation may returns
+     *                      structure with additional data.
      */
     public function renderTemplate($template, $data)
     {
-        return strtr($template, $this->getPlaceholdersData($data));
+        return $this->render($template, $this->getPlaceholdersData($data));
     }
 
     /**
@@ -43,7 +44,7 @@ abstract class MessageContext
      */
     public function renderSample($template)
     {
-        return strtr($template, $this->getPlaceholdersSamples());
+        return $this->render($template, $this->getPlaceholdersSamples());
     }
 
     /**
@@ -100,6 +101,19 @@ abstract class MessageContext
             },
             $this->placeholdersConfig
         );
+    }
+
+    /**
+     * Renders template
+     *
+     * @param string $template
+     * @param array $placeholders [placeholder => substitution string, ...]
+     *
+     * @return string
+     */
+    protected function render($template, $placeholders)
+    {
+        return strtr($template, $placeholders);
     }
 
     /**

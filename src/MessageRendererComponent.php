@@ -42,6 +42,21 @@ class MessageRendererComponent extends CApplicationComponent
     }
 
     /**
+     * Renders sample message by template and context
+     *
+     * @param string $contextType  Type of previously registered context
+     * @param string $textTemplate Template text
+     *
+     * @return string
+     *
+     * @throws CException if context with $contextType does not registered in the component
+     */
+    public function renderSample($contextType, $textTemplate)
+    {
+        return $this->getContext($contextType)->renderSample($textTemplate);
+    }
+
+    /**
      * Iterating over data set and rendering messages
      *
      * @param string          $contextType  Type of previously registered context
