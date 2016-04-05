@@ -37,6 +37,16 @@ abstract class MessageContext
     }
 
     /**
+     * @param string $template
+     *
+     * @return string
+     */
+    public function renderSample($template)
+    {
+        return strtr($template, $this->getPlaceholdersSamples());
+    }
+
+    /**
      * @param array $config
      *
      * @see MessageContext::placeholdersConfig()
@@ -67,14 +77,26 @@ abstract class MessageContext
     }
 
     /**
-     * Справочные данные по подстановкам
-     * @return array [подстановка => ['title' => название подстановки, 'description' => описание подстановки]]
+     * Returns description of placeholders
+     * @return array [placeholder => ['title' => string, 'description' => string, 'sample' => string], ...]
      */
     public function getPlaceholdersInfo()
     {
         return array_map(
             function ($config) {
-                return array_intersect_key($config, array('title' => true, 'description' => true));
+                return array_intersect_key($config, array('title' => true, 'description' => true, 'sample' => true));
+            },
+            $this->placeholdersConfig
+        );
+    }
+
+    public function getPlaceholdersSamples()
+    {
+        return array_map(
+            function ($config) {
+                return isset($config['sample'])
+                    ? $config['sample']
+                    : (isset($config['empty']) ? (string)$config['empty'] : '');
             },
             $this->placeholdersConfig
         );
@@ -99,6 +121,7 @@ abstract class MessageContext
      *         'title' => 'Substitution 1', // Human readable string using as hint for template editing
      *         'description' => 'Description for Substitution 1',
      *         'fetcher' => 'property.path[0]', // propertyPath or callable (data) that returns string
+     *         'sample' => 'Substitution 1 Sample', // for testing of template rendering
      *         'empty' => '(unknown)', // used if fetcher gives an empty string
      *     ],
      *     ...
