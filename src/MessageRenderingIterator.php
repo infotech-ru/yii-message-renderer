@@ -87,22 +87,29 @@ class MessageRenderingIterator implements Iterator
 
     public function next()
     {
-        do {
-            $this->dataProviderIterator->next();
-        } while ($this->skipEmptyAddress && $this->valid() && (string)$this->key() === '');
+        $this->dataProviderIterator->next();
     }
 
     public function valid()
     {
+        while ($this->dataProviderIterator->valid() && !$this->canBeRendered()) {
+            $this->dataProviderIterator->next();
+        }
+
         return $this->dataProviderIterator->valid();
     }
 
     public function rewind()
     {
         $this->dataProviderIterator->rewind();
+    }
 
-        while ($this->skipEmptyAddress && $this->valid() && (string)$this->key() === '') {
-            $this->dataProviderIterator->next();
-        }
+    /**
+     * @return bool
+     */
+    private function canBeRendered()
+    {
+        return !($this->skipEmptyAddress && (string)$this->key() === '')
+            && $this->context->isDataSufficient($this->template, $this->dataProviderIterator->current());
     }
 }

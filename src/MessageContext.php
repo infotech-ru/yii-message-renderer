@@ -34,7 +34,7 @@ abstract class MessageContext
      */
     public function renderTemplate($template, $data)
     {
-        return $this->render($template, $this->getPlaceholdersData($data));
+        return $this->render($template, $this->getPlaceholdersData($template, $data));
     }
 
     /**
@@ -44,7 +44,7 @@ abstract class MessageContext
      */
     public function renderSample($template)
     {
-        return $this->render($template, $this->getPlaceholdersSamples());
+        return $this->render($template, $this->getPlaceholdersSamples($template));
     }
 
     /**
@@ -63,17 +63,21 @@ abstract class MessageContext
     }
 
     /**
-     * Fetch placeholders data
+     * Fetch placeholders data for given template
+     *
+     * @param string $template
+     * @param array|object $data
+     *
      * @return array [placeholder => value-string]
      */
-    public function getPlaceholdersData($data)
+    public function getPlaceholdersData($template, $data)
     {
         return array_map(
             function ($config) use ($data) {
                 return trim(DataFetcher::fetchData($config['fetcher'], $data))
                     ?: (isset($config['empty']) ? (string)$config['empty'] : '');
             },
-            $this->placeholdersConfig
+            $this->getTemplatePlaceholders($template)
         );
     }
 
@@ -91,7 +95,7 @@ abstract class MessageContext
         );
     }
 
-    public function getPlaceholdersSamples()
+    public function getPlaceholdersSamples($template)
     {
         return array_map(
             function ($config) {
@@ -99,8 +103,33 @@ abstract class MessageContext
                     ? $config['sample']
                     : (isset($config['empty']) ? (string)$config['empty'] : '');
             },
-            $this->placeholdersConfig
+            $this->getTemplatePlaceholders($template)
         );
+    }
+
+    /**
+     * Fetches placeholders for given template
+     *
+     * @param string $template
+     *
+     * @return array subset of placeholders config
+     */
+    public function getTemplatePlaceholders($template)
+    {
+        $templatePlaceholders = array();
+
+        foreach ($this->placeholdersConfig as $placeholder => $definition) {
+            if (false !== $pos = mb_strpos($template, $placeholder)) {
+                $templatePlaceholders[$placeholder] = $definition;
+            }
+        }
+
+        return $templatePlaceholders;
+    }
+
+    public function isDataSufficient($template, $data)
+    {
+        return false === array_search('', $this->getPlaceholdersData($template, $data));
     }
 
     /**
@@ -110,9 +139,14 @@ abstract class MessageContext
      * @param array $placeholders [placeholder => substitution string, ...]
      *
      * @return string
+     * @throws IncompleteDataException if $placeholders has insufficient data for rendering the $template
      */
-    protected function render($template, $placeholders)
+    protected function render($template, array $placeholders)
     {
+        if (false !== array_search('', $placeholders)) {
+            throw new IncompleteDataException($template, $placeholders);
+        }
+
         return strtr($template, $placeholders);
     }
 

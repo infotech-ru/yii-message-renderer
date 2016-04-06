@@ -17,10 +17,14 @@ class MessageContextTest extends PHPUnit_Framework_TestCase
         /** @var \Mockery\MockInterface|MessageContext $context */
         $context = provideContextMock('context', 'context', $this->providePlaceholdersConfig());
 
-        $substitutions = $context->getPlaceholdersData(array('object' => (object)array('property' => 'value 1')));
+        $substitutions = $context->getPlaceholdersData(
+            '_PLH_1_ _PLH_2_',
+            array('object' => (object)array('property' => 'value 1'))
+        );
 
         $this->assertArrayHasKey('_PLH_1_', $substitutions);
         $this->assertArrayHasKey('_PLH_2_', $substitutions);
+        $this->assertArrayNotHasKey('_PLH_3_', $substitutions);
         $this->assertEquals('value 1', $substitutions['_PLH_1_']);
         $this->assertEquals('(none)', $substitutions['_PLH_2_']);
     }
@@ -53,6 +57,20 @@ class MessageContextTest extends PHPUnit_Framework_TestCase
         );
 
         $this->assertEquals('{value 1} =(none)= _value 1_', $message);
+    }
+
+    /**
+     * @expectedException \Infotech\MessageRenderer\IncompleteDataException
+     */
+    public function testRenderTemplate_WithInsufficientData()
+    {
+        /** @var \Mockery\MockInterface|MessageContext $context */
+        $context = provideContextMock('context', 'context', $this->providePlaceholdersConfig());
+
+        $context->renderTemplate(
+            '{_PLH_1_} =_PLH_2_= __PLH_4__',
+            array('object' => (object)array('property' => 'value 1'))
+        );
     }
 
     public function testRenderSample()
@@ -89,6 +107,12 @@ class MessageContextTest extends PHPUnit_Framework_TestCase
                 'fetcher' => function (array $data) { return $data['object']->property; },
                 'sample' => 'Place 3',
                 'empty' => '(none)',
+            ),
+            '_PLH_4_' => array(
+                'title' => 'Placeholder 4',
+                'description' => 'Description 4',
+                'fetcher' => function () { return ''; },
+                'sample' => 'Place 4'
             ),
         );
     }
