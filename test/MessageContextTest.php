@@ -59,6 +59,19 @@ class MessageContextTest extends PHPUnit_Framework_TestCase
         $this->assertEquals('{value 1} =(none)= _value 1_', $message);
     }
 
+    public function testRenderArrayTemplate()
+    {
+        /** @var \Mockery\MockInterface|MessageContext $context */
+        $context = provideContextMock('context', 'context', $this->providePlaceholdersConfig());
+
+        $message = $context->renderTemplate(
+            array('key1' => '{_PLH_1_} =_PLH_2_= __PLH_3__', 'key2' => '_PLH_3_'),
+            array('object' => (object)array('property' => 'value 1'))
+        );
+
+        $this->assertEquals(array('key1' => '{value 1} =(none)= _value 1_', 'key2' => 'value 1'), $message);
+    }
+
     /**
      * @expectedException \Infotech\MessageRenderer\IncompleteDataException
      */
@@ -73,6 +86,20 @@ class MessageContextTest extends PHPUnit_Framework_TestCase
         );
     }
 
+    /**
+     * @expectedException \Infotech\MessageRenderer\IncompleteDataException
+     */
+    public function testRenderArrayTemplate_WithInsufficientData()
+    {
+        /** @var \Mockery\MockInterface|MessageContext $context */
+        $context = provideContextMock('context', 'context', $this->providePlaceholdersConfig());
+
+        $context->renderTemplate(
+            array('key1' => '{_PLH_1_} =_PLH_2_= __PLH_3__', 'key2' => '__PLH_4__'),
+            array('object' => (object)array('property' => 'value 1'))
+        );
+    }
+
     public function testRenderSample()
     {
         /** @var \Mockery\MockInterface|MessageContext $context */
@@ -81,6 +108,16 @@ class MessageContextTest extends PHPUnit_Framework_TestCase
         $message = $context->renderSample('{_PLH_1_} =_PLH_2_= __PLH_3__');
 
         $this->assertEquals('{Place 1} =(none)= _Place 3_', $message);
+    }
+
+    public function testRenderArraySample()
+    {
+        /** @var \Mockery\MockInterface|MessageContext $context */
+        $context = provideContextMock('context', 'context', $this->providePlaceholdersConfig());
+
+        $message = $context->renderSample(array('key1' => '{_PLH_1_} =_PLH_2_= __PLH_3__', 'key2' => '_PLH_3_'));
+
+        $this->assertEquals(array('key1' => '{Place 1} =(none)= _Place 3_', 'key2' => 'Place 3'), $message);
     }
 
     /**

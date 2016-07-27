@@ -12,7 +12,6 @@ namespace Infotech\MessageRenderer;
 
 use CDataProviderIterator;
 use CDataProvider;
-use CHtml;
 use Iterator;
 
 /**
@@ -28,43 +27,24 @@ class MessageRenderingIterator implements Iterator
     private $context;
 
     /**
-     * @var string
+     * @var string|array
      */
     private $template;
-    
-    /**
-     * @var string|\Closure
-     */
-    private $addressFetcher;
 
     /**
      * @var CDataProviderIterator
      */
     private $dataProviderIterator;
-    /**
-     * @var bool
-     */
-    private $skipEmptyAddress;
 
     /**
-     * @param CDataProvider   $dataProvider
-     * @param MessageContext  $context
-     * @param string          $textTemplate
-     * @param string|callable $addressFetcher property path or callback function($data) : string
-     * @param bool            $skipEmptyAddress should iterator skip messages without address
+     * @param CDataProvider  $dataProvider
+     * @param MessageContext $context
+     * @param string|array   $template
      */
-    public function __construct(
-        CDataProvider $dataProvider,
-        MessageContext $context,
-        $textTemplate,
-        $addressFetcher = null,
-        $skipEmptyAddress = true
-    )
+    public function __construct(CDataProvider $dataProvider, MessageContext $context, $template)
     {
-        $this->template = $textTemplate;
+        $this->template = $template;
         $this->context = $context;
-        $this->addressFetcher = $addressFetcher;
-        $this->skipEmptyAddress = $skipEmptyAddress;
         $this->dataProviderIterator = new CDataProviderIterator($dataProvider, self::DEFAULT_PAGE_SIZE);
     }
 
@@ -81,9 +61,7 @@ class MessageRenderingIterator implements Iterator
 
     public function key()
     {
-        return $this->addressFetcher === null
-            ? $this->dataProviderIterator->key()
-            : CHtml::value($this->dataProviderIterator->current(), $this->addressFetcher);
+        return $this->dataProviderIterator->key();
     }
 
     public function next()
@@ -110,7 +88,6 @@ class MessageRenderingIterator implements Iterator
      */
     private function canBeRendered()
     {
-        return !($this->skipEmptyAddress && (string)$this->key() === '')
-            && $this->context->isDataSufficient($this->template, $this->dataProviderIterator->current());
+        return $this->context->isDataSufficient($this->template, $this->dataProviderIterator->current());
     }
 }

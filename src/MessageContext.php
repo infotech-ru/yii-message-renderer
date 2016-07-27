@@ -11,6 +11,7 @@
 namespace Infotech\MessageRenderer;
 
 use CHtml;
+use InvalidArgumentException;
 
 /**
  * Abstract Message Render Context class
@@ -28,11 +29,13 @@ abstract class MessageContext
     }
 
     /**
-     * @param string $template
+     * @param string|array $template
      * @param object|array $data
      *
-     * @return string|mixed Default implementation returns string, but custom implementation may returns
-     *                      structure with additional data.
+     * @return string|array String or array of strings with keys from $template array rendered with given data
+     *
+     * @throws IncompleteDataException if $placeholders has insufficient data for rendering the $template
+     * @throws InvalidArgumentException if $template is not a string nor an array
      */
     public function renderTemplate($template, $data)
     {
@@ -40,9 +43,12 @@ abstract class MessageContext
     }
 
     /**
-     * @param string $template
+     * @param string|array $template
      *
-     * @return string
+     * @return string|array String or array of strings with keys from $template array rendered with sample data
+     *
+     * @throws IncompleteDataException if $placeholders has insufficient data for rendering the $template
+     * @throws InvalidArgumentException if $template is not a string nor an array
      */
     public function renderSample($template)
     {
@@ -67,7 +73,7 @@ abstract class MessageContext
     /**
      * Fetch placeholders data for given template
      *
-     * @param string $template
+     * @param string|array $template
      * @param array|object $data
      *
      * @return array [placeholder => value-string]
@@ -112,13 +118,15 @@ abstract class MessageContext
     /**
      * Fetches placeholders for given template
      *
-     * @param string $template
+     * @param string|array $template
      *
      * @return array subset of placeholders config
      */
     public function getTemplatePlaceholders($template)
     {
         $templatePlaceholders = array();
+
+        $template = implode(' ', (array)$template);
 
         foreach ($this->placeholdersConfig as $placeholder => $definition) {
             if (false !== $pos = mb_strpos($template, $placeholder)) {
@@ -137,11 +145,12 @@ abstract class MessageContext
     /**
      * Renders template
      *
-     * @param string $template
+     * @param string|array $template
      * @param array $placeholders [placeholder => substitution string, ...]
      *
-     * @return string
+     * @return string|array
      * @throws IncompleteDataException if $placeholders has insufficient data for rendering the $template
+     * @throws InvalidArgumentException if $template is not a string nor an array
      */
     protected function render($template, array $placeholders)
     {
@@ -149,7 +158,13 @@ abstract class MessageContext
             throw new IncompleteDataException($template, $placeholders);
         }
 
-        return strtr($template, $placeholders);
+        if (!is_string($template) && !is_array($template)) {
+            throw new InvalidArgumentException('Invalid type of $template. Expects string or array of strings');
+        }
+
+        return is_string($template)
+            ? strtr($template, $placeholders)
+            : array_map(function ($templ) use ($placeholders) { return strtr($templ, $placeholders); }, $template);
     }
 
     /**

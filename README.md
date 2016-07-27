@@ -46,13 +46,13 @@ php composer.phar require infotech/yii-message-renderer
 Теперь для отрисовки одного сообщения достаточно написать
 
 ```php
-    Yii::app()->messageRenderer->render($contextType, $templateText, $data);
+    Yii::app()->messageRenderer->render($contextType, $templateStringOrArray, $data);
 ```
 
 а для отрисовки множества сообщений нужно использовать
 
 ```php
-    foreach (Yii::app()->messageRenderer->renderBatch($contextType, $templateText, $dataProvider) as $message) {
+    foreach (Yii::app()->messageRenderer->renderBatch($contextType, $templateStringOrArray, $dataProvider) as $message) {
         // тип данных $message зависит от реализации метода `renderTemplate()` контекста
     }
 ```
@@ -64,10 +64,9 @@ php composer.phar require infotech/yii-message-renderer
 `Infotech\MessageRenderer\MessageContext` и определяет состав подстановок и способ извлечения
 данных.
 
-В интерфейсе класса контекста есть метод `renderTemplate($templateText, $data)`, который в
-реализации абстрактного контекста возвращает строку. Дочерние классы контекстов могут
-переопределять этот метод и возвращать не просто строку, а структуру сообщения с дополнительными
-данными.
+В интерфейсе класса контекста есть метод `renderTemplate($templateStringOrArray, $data)`, который
+принимает строку шаблона (или массив шаблонных строк) и данные для наполнения шаблона, 
+а возвращяет отрисованную строку (или такой же массив отрисованных строк с теми же ключами).
 
 Приведем пример класса контекста. Предположим у нас есть модель `User`, а также `Task` с
 отношениями "assignee" (*BELONGS_TO* к `User`) и "reporter" (*BELONGS_TO* к `User`).
@@ -87,7 +86,7 @@ class TaskMessageContext extends \Infotech\MessageRenderer\MessageContext
             '_СТАТУС_ЗАДАЧИ_' => array(
                 'title' => 'Статус задачи',
                 'description' => 'Статус задачи. Например, "выполняется"',
-                'fetcher' => 'subject',
+                'fetcher' => 'statusName',
             ),
             '_ТЕМА_ЗАДАЧИ_' => array(
                 'title' => 'Тема задачи',
@@ -104,6 +103,11 @@ class TaskMessageContext extends \Infotech\MessageRenderer\MessageContext
                 'title' => 'Имя пользователя',
                 'description' => 'Имя сотрудника, выполняющего действие над задачей (в именительном падеже). Например, "Константин Отрубов"',
                 'fetcher' => function () { return Yii::app()->getUser()->getModel()->fullName; },
+            ),
+            '_ПОЧТА_ПОЛЬЗОВАТЕЛЯ_' => array(
+                'title' => 'E-mail пользователя',
+                'description' => 'E-mail сотрудника, выполняющего действие над задачей. Например, "otrubov@example.com"',
+                'fetcher' => function () { return Yii::app()->getUser()->getModel()->email; },
             ),
         );
     }
@@ -126,27 +130,40 @@ class TaskMessageContext extends \Infotech\MessageRenderer\MessageContext
 
 ```php
 $task = ...; // задача, изменившая статус
-$template = '_ИМЯ_ПОЛЬЗОВАТЕЛЯ_ перевел задачу в статус "_СТАТУС_ЗАДАЧИ_"'; // достали шаблон из БД или иного источника
+// достали шаблон из БД или иного источника
+$template = array( 
+    'message' => '_ИМЯ_ПОЛЬЗОВАТЕЛЯ_ перевел задачу в статус "_СТАТУС_ЗАДАЧИ_"',
+    'subject' => 'Изменение статуса задачи №_НОМЕР_ЗАДАЧИ_',
+    'from' => 'notifier@example.com',
+    'to' => '_ПОЧТА_ПОЛЬЗОВАТЕЛЯ_',
+);
 
-$message = Yii::app()->messageRenderer->render('task_issue', $template, $task);
+$emailData = Yii::app()->messageRenderer->render('task_issue', $template, $task);
 
-Yii::app()->mailer->send($message, $task->reporter->email);
+Yii::app()->mailer->send($emailData['message'], $emailData['subject'], $emailData['to'], $emailData['from']);
 ```
 
 а для групповой отправке, пишем
 
 ```php
 $tasksProvider = ...; // СDataProvider с задачами, изменившими статус
-$template = '_ИМЯ_ПОЛЬЗОВАТЕЛЯ_ перевел задачу в статус "_СТАТУС_ЗАДАЧИ_"'; // достали шаблон из БД или иного источника
+// достали шаблон из БД или иного источника
+$template = array( 
+    'message' => '_ИМЯ_ПОЛЬЗОВАТЕЛЯ_ перевел задачу в статус "_СТАТУС_ЗАДАЧИ_"',
+    'subject' => 'Изменение статуса задачи №_НОМЕР_ЗАДАЧИ_',
+    'from' => 'notifier@example.com',
+    'to' => '_ПОЧТА_ПОЛЬЗОВАТЕЛЯ_',
+);
 
 $messagesIterator = Yii::app()->messageRenderer->renderBatch(
     'task_issue',
     $template,
-    $tasksProvider,
-    'reporter.email'
+    $tasksProvider
 );
 
-foreach ($messagesIterator as $email => $message) {
-    Yii::app()->mailer->send($message, $email);
+foreach ($messagesIterator as $emailData) {
+    if ($emailData['to']) {
+        Yii::app()->mailer->send($emailData['message'], $emailData['subject'], $emailData['to'], $emailData['from']);
+    }
 }
 ```
