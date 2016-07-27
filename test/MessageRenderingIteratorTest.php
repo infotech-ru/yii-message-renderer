@@ -41,7 +41,7 @@ class MessageRenderingIteratorTest extends PHPUnit_Framework_TestCase
             array('key1' => 'value3', 'addr' => 'addr3'),
         );
 
-        $iterator = new MessageRenderingIterator(new CArrayDataProvider($data), $context, $template, '[addr]');
+        $iterator = new MessageRenderingIterator(new CArrayDataProvider($data), $context, $template, 'addr');
         $resultArray = iterator_to_array($iterator);
 
         $this->assertCount(2, $resultArray);

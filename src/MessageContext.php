@@ -10,6 +10,8 @@
 
 namespace Infotech\MessageRenderer;
 
+use CHtml;
+
 /**
  * Abstract Message Render Context class
  */
@@ -74,7 +76,7 @@ abstract class MessageContext
     {
         return array_map(
             function ($config) use ($data) {
-                return trim(DataFetcher::fetchData($config['fetcher'], $data))
+                return trim(CHtml::value($data, $config['fetcher']))
                     ?: (isset($config['empty']) ? (string)$config['empty'] : '');
             },
             $this->getTemplatePlaceholders($template)

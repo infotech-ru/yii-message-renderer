@@ -12,6 +12,7 @@ namespace Infotech\MessageRenderer;
 
 use CDataProviderIterator;
 use CDataProvider;
+use CHtml;
 use Iterator;
 
 /**
@@ -82,7 +83,7 @@ class MessageRenderingIterator implements Iterator
     {
         return $this->addressFetcher === null
             ? $this->dataProviderIterator->key()
-            : DataFetcher::fetchData($this->addressFetcher, $this->dataProviderIterator->current());
+            : CHtml::value($this->dataProviderIterator->current(), $this->addressFetcher);
     }
 
     public function next()

@@ -10,7 +10,6 @@
     }
   ],
   "require": {
-    "symfony/property-access": "^2.8"
   },
   "require-dev": {
     "yiisoft/yii": "^1.1",

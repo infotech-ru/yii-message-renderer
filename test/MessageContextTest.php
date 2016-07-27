@@ -92,13 +92,13 @@ class MessageContextTest extends PHPUnit_Framework_TestCase
             '_PLH_1_' => array(
                 'title' => 'Placeholder 1',
                 'description' => 'Description 1',
-                'fetcher' => '[object].property',
+                'fetcher' => 'object.property',
                 'sample' => 'Place 1',
             ),
             '_PLH_2_' => array(
                 'title' => 'Placeholder 2',
                 'description' => 'Description 2',
-                'fetcher' => '[object].not.existent.property',
+                'fetcher' => 'object.not.existent.property',
                 'empty' => '(none)',
             ),
             '_PLH_3_' => array(
