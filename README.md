@@ -146,7 +146,7 @@ Yii::app()->mailer->send($emailData['message'], $emailData['subject'], $emailDat
 а для групповой отправке, пишем
 
 ```php
-$tasksProvider = ...; // СDataProvider с задачами, изменившими статус
+$tasks = ...; // Traversable с задачами, изменившими статус
 // достали шаблон из БД или иного источника
 $template = array( 
     'message' => '_ИМЯ_ПОЛЬЗОВАТЕЛЯ_ перевел задачу в статус "_СТАТУС_ЗАДАЧИ_"',
@@ -155,11 +155,7 @@ $template = array(
     'to' => '_ПОЧТА_ПОЛЬЗОВАТЕЛЯ_',
 );
 
-$messagesIterator = Yii::app()->messageRenderer->renderBatch(
-    'task_issue',
-    $template,
-    $tasksProvider
-);
+$messagesIterator = Yii::app()->messageRenderer->renderBatch('task_issue', $template, $tasks);
 
 foreach ($messagesIterator as $emailData) {
     if ($emailData['to']) {
