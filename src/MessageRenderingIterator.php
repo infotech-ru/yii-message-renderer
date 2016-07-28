@@ -10,14 +10,13 @@
 
 namespace Infotech\MessageRenderer;
 
-use CDataProviderIterator;
-use CDataProvider;
-use Iterator;
+use IteratorIterator;
+use Traversable;
 
 /**
  * Data stream render iterator
  */
-class MessageRenderingIterator implements Iterator
+class MessageRenderingIterator extends IteratorIterator
 {
     const DEFAULT_PAGE_SIZE = 100;
 
@@ -32,20 +31,15 @@ class MessageRenderingIterator implements Iterator
     private $template;
 
     /**
-     * @var CDataProviderIterator
-     */
-    private $dataProviderIterator;
-
-    /**
-     * @param CDataProvider  $dataProvider
+     * @param Traversable    $iterator
      * @param MessageContext $context
      * @param string|array   $template
      */
-    public function __construct(CDataProvider $dataProvider, MessageContext $context, $template)
+    public function __construct(Traversable $iterator, MessageContext $context, $template)
     {
+        parent::__construct($iterator);
         $this->template = $template;
         $this->context = $context;
-        $this->dataProviderIterator = new CDataProviderIterator($dataProvider, self::DEFAULT_PAGE_SIZE);
     }
 
     /**
@@ -56,31 +50,16 @@ class MessageRenderingIterator implements Iterator
      */
     public function current()
     {
-        return $this->context->renderTemplate($this->template, $this->dataProviderIterator->current());
-    }
-
-    public function key()
-    {
-        return $this->dataProviderIterator->key();
-    }
-
-    public function next()
-    {
-        $this->dataProviderIterator->next();
+        return $this->context->renderTemplate($this->template, parent::current());
     }
 
     public function valid()
     {
-        while ($this->dataProviderIterator->valid() && !$this->canBeRendered()) {
-            $this->dataProviderIterator->next();
+        while (parent::valid() && !$this->canBeRendered()) {
+            parent::next();
         }
 
-        return $this->dataProviderIterator->valid();
-    }
-
-    public function rewind()
-    {
-        $this->dataProviderIterator->rewind();
+        return parent::valid();
     }
 
     /**
@@ -88,6 +67,6 @@ class MessageRenderingIterator implements Iterator
      */
     private function canBeRendered()
     {
-        return $this->context->isDataSufficient($this->template, $this->dataProviderIterator->current());
+        return $this->context->isDataSufficient($this->template, parent::current());
     }
 }

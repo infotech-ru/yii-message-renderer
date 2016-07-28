@@ -12,7 +12,7 @@ namespace Infotech\MessageRenderer;
 use CApplicationComponent;
 use CException;
 use Exception;
-use CDataProvider;
+use Traversable;
 use Yii;
 
 Yii::import('CApplicationComponent');
@@ -59,22 +59,15 @@ class MessageRendererComponent extends CApplicationComponent
     /**
      * Iterating over data set and rendering messages
      *
-     * @param string          $contextType  Type of previously registered context
-     * @param string          $textTemplate Template text
-     * @param CDataProvider   $dataProvider Provides data of type conformed with $contextType
-     * @param string|callable $addressFetcher property path or callback function($data) : string
+     * @param string      $contextType  Type of previously registered context
+     * @param string      $textTemplate Template text
+     * @param Traversable $dataIterator Provides data of type conformed with $contextType
      *
      * @return MessageRenderingIterator
-     * @throws CException if context with $contextType does not registered in the component
      */
-    public function renderBatch($contextType, $textTemplate, CDataProvider $dataProvider, $addressFetcher = null)
+    public function renderBatch($contextType, $textTemplate, Traversable $dataIterator)
     {
-        return new MessageRenderingIterator(
-            $dataProvider,
-            $this->getContext($contextType),
-            $textTemplate,
-            $addressFetcher
-        );
+        return new MessageRenderingIterator($dataIterator, $this->getContext($contextType), $textTemplate);
     }
 
     /**

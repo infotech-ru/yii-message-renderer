@@ -26,7 +26,9 @@ class MessageRenderingIteratorTest extends PHPUnit_Framework_TestCase
             array('key1' => 'value3'),
         );
 
-        iterator_to_array(new MessageRenderingIterator(new CArrayDataProvider($data), $context, $template));
+        $dataIterator = new CDataProviderIterator(new CArrayDataProvider($data));
+
+        iterator_to_array(new MessageRenderingIterator($dataIterator, $context, $template));
 
         $context->shouldHaveReceived('renderTemplate', array($template, $data[0]));
         $context->shouldHaveReceived('renderTemplate', array($template, $data[1]));
