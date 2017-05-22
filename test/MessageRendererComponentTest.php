@@ -112,7 +112,7 @@ class MessageRendererComponentTest extends PHPUnit_Framework_TestCase
         $component->registerContext($context);
         $component->render('context', $template, $data);
 
-        $context->shouldHaveReceived('renderTemplate', array($template, $data))->once();
+        $context->shouldHaveReceived('renderTemplate', array($template, $data, false))->once();
     }
 
     /**

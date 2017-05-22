@@ -143,7 +143,7 @@ $emailData = Yii::app()->messageRenderer->render('task_issue', $template, $task)
 Yii::app()->mailer->send($emailData['message'], $emailData['subject'], $emailData['to'], $emailData['from']);
 ```
 
-а для групповой отправке, пишем
+а для групповой отправки, пишем
 
 ```php
 $tasks = ...; // Traversable с задачами, изменившими статус

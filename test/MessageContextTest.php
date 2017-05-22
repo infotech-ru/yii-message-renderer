@@ -86,6 +86,20 @@ class MessageContextTest extends PHPUnit_Framework_TestCase
         );
     }
 
+    public function testRenderTemplate_SilentlyWithInsufficientData()
+    {
+        /** @var \Mockery\MockInterface|MessageContext $context */
+        $context = provideContextMock('context', 'context', $this->providePlaceholdersConfig());
+
+        $message = $context->renderTemplate(
+            '{_PLH_1_} =_PLH_2_= __PLH_4__',
+            array('object' => (object)array('property' => 'value 1')),
+            true
+        );
+
+        $this->assertEquals('{value 1} =(none)= __PLH_4__', $message);
+    }
+
     /**
      * @expectedException \Infotech\MessageRenderer\IncompleteDataException
      */

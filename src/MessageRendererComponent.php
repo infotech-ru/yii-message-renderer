@@ -30,15 +30,18 @@ class MessageRendererComponent extends CApplicationComponent
      * @param string $contextType  Type of previously registered context
      * @param string $textTemplate Template text
      * @param object|array $data   Data for placeholder substitutions
+     * @param boolean      $ignoreInsufficientData true - placeholders with no data will be untouched,
+     *                                             false - {@see IncompleteDataException} will be thrown if
+     *                                             $data is insufficient.
      *
      * @return string|mixed Default {@see MessageContext::renderTemplate()} implementation returns string, but
      *                      custom implementation may returns structure with additional data
      *
      * @throws CException if context with $contextType does not registered in the component
      */
-    public function render($contextType, $textTemplate, $data)
+    public function render($contextType, $textTemplate, $data, $ignoreInsufficientData = false)
     {
-        return $this->getContext($contextType)->renderTemplate($textTemplate, $data);
+        return $this->getContext($contextType)->renderTemplate($textTemplate, $data, $ignoreInsufficientData);
     }
 
     /**

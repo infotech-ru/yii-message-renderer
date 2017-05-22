@@ -31,15 +31,28 @@ abstract class MessageContext
     /**
      * @param string|array $template
      * @param object|array $data
+     * @param boolean      $ignoreInsufficientData true - placeholders with no data will be untouched,
+     *                                             false - {@see IncompleteDataException} will be thrown if
+     *                                             $data is insufficient.
      *
      * @return string|array String or array of strings with keys from $template array rendered with given data
      *
      * @throws IncompleteDataException if $placeholders has insufficient data for rendering the $template
      * @throws InvalidArgumentException if $template is not a string nor an array
      */
-    public function renderTemplate($template, $data)
+    public function renderTemplate($template, $data, $ignoreInsufficientData = false)
     {
-        return $this->render($template, $this->getPlaceholdersData($template, $data));
+        $placeholdersData = $this->getPlaceholdersData($template, $data);
+
+        if ($ignoreInsufficientData) {
+            foreach ($placeholdersData as $placeholder => $val) {
+                if (!$val) {
+                    $placeholdersData[$placeholder] = $placeholder;
+                }
+            }
+        }
+
+        return $this->render($template, $placeholdersData);
     }
 
     /**
