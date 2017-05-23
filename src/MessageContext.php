@@ -141,8 +141,16 @@ abstract class MessageContext
 
         $template = implode(' ', (array)$template);
 
-        foreach ($this->placeholdersConfig as $placeholder => $definition) {
+        $placeholders = $this->placeholdersConfig;
+        uksort($placeholders, function ($plh1, $plh2) {
+            return strlen($plh1) < strlen($plh2) ? 1 : (
+                strlen($plh1) > strlen($plh2) ? -1 : 0
+            );
+        });
+
+        foreach ($placeholders as $placeholder => $definition) {
             if (false !== $pos = mb_strpos($template, $placeholder)) {
+                $template = str_replace($placeholder, '', $template);
                 $templatePlaceholders[$placeholder] = $definition;
             }
         }

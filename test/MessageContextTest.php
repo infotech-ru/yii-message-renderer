@@ -18,15 +18,19 @@ class MessageContextTest extends PHPUnit_Framework_TestCase
         $context = provideContextMock('context', 'context', $this->providePlaceholdersConfig());
 
         $substitutions = $context->getPlaceholdersData(
-            '_PLH_1_ _PLH_2_',
+            '_PLH_1_1_ _PLH_3_ _PLH_2_1_ _PLH_2_',
             array('object' => (object)array('property' => 'value 1'))
         );
 
-        $this->assertArrayHasKey('_PLH_1_', $substitutions);
+        $this->assertArrayHasKey('_PLH_1_1_', $substitutions);
+        $this->assertArrayHasKey('_PLH_2_1_', $substitutions);
+        $this->assertArrayHasKey('_PLH_3_', $substitutions);
         $this->assertArrayHasKey('_PLH_2_', $substitutions);
-        $this->assertArrayNotHasKey('_PLH_3_', $substitutions);
-        $this->assertEquals('value 1', $substitutions['_PLH_1_']);
+        $this->assertArrayNotHasKey('_PLH_1_', $substitutions);
+        $this->assertEquals('yes', $substitutions['_PLH_1_1_']);
+        $this->assertEquals('value 1', $substitutions['_PLH_3_']);
         $this->assertEquals('(none)', $substitutions['_PLH_2_']);
+        $this->assertEquals('no', $substitutions['_PLH_2_1_']);
     }
 
     public function testGetPlaceholdersInfo()
@@ -114,6 +118,19 @@ class MessageContextTest extends PHPUnit_Framework_TestCase
         );
     }
 
+    public function testRenderPlaceholderPartiallyMatchesAnotherOne()
+    {
+        /** @var \Mockery\MockInterface|MessageContext $context */
+        $context = provideContextMock('context', 'context', $this->providePlaceholdersConfig());
+
+        $message = $context->renderTemplate(
+            '{_PLH_1_} =_PLH_2_= _PLH_1_1_ !',
+            array('object' => (object)array('property' => 'value 1'))
+        );
+
+        $this->assertEquals('{value 1} =(none)= yes !', $message);
+    }
+
     public function testRenderSample()
     {
         /** @var \Mockery\MockInterface|MessageContext $context */
@@ -146,6 +163,12 @@ class MessageContextTest extends PHPUnit_Framework_TestCase
                 'fetcher' => 'object.property',
                 'sample' => 'Place 1',
             ),
+            '_PLH_2_1_' => array(
+                'title' => 'Placeholder 2-1',
+                'description' => 'Description 2-1',
+                'fetcher' => function () { return 'no'; },
+                'sample' => 'Place 2-1'
+            ),
             '_PLH_2_' => array(
                 'title' => 'Placeholder 2',
                 'description' => 'Description 2',
@@ -164,6 +187,12 @@ class MessageContextTest extends PHPUnit_Framework_TestCase
                 'description' => 'Description 4',
                 'fetcher' => function () { return ''; },
                 'sample' => 'Place 4'
+            ),
+            '_PLH_1_1_' => array(
+                'title' => 'Placeholder 1-1',
+                'description' => 'Description 1-1',
+                'fetcher' => function () { return 'yes'; },
+                'sample' => 'Place 1-1'
             ),
         );
     }
